@@ -13,18 +13,23 @@ enum Room{
   Ania_room
 };
 
+enum State{
+  Open,
+  Closed,
+  Somewhere
+};
+
 enum Action{
   Opening,
   Closing,
   Stop
-  };
+};
 
 
 typedef struct BlindFold BlindFold;
 typedef enum Room Room;
 typedef enum Action Action;
-
-
+typedef enum State State;
 
 
 struct BlindFold {
@@ -32,16 +37,24 @@ struct BlindFold {
   int decision_pin; // on and off pin
   int motor_pin; // up or down pin
 
+  const int close_time; // time it takes to close
+  const int open_time;// time it takes to open
+
   int start_time; // start time of opening or closing
   int end_time; //end time of opening or closing
-  int stop_time = 0; //time when blind fold was stopped
+  int stop_time;
 
-  int close_time; // time it takes to close
-  int open_time;// time it takes to open
+  int time_to_open = open_time;
+  int time_to_close = close_time;
 
-  bool working = false; //whether blin fold is stationary or moving
+
+  
+
+  
+  
   Action action = Stop; //what type of action is blindfold doing
   Action previous_action = Stop;
+  State state = Open;
 
   
 
@@ -56,94 +69,52 @@ struct BlindFold {
     pinMode(motor_pin, OUTPUT);
   }
   void calculate_end_time(){
-    double open_to_close;
-    open_to_close = open_time/ (double) close_time;
-    Serial.println("Open to close time ratio: ");
-    Serial.println(open_to_close);
+    double ratio;
+    ratio = open_time/ (double) close_time;
 
+    int prev_end_time = end_time;
 
-    if (stop_time == 0){
-      switch(action){
-
-        case Opening:
-          end_time = start_time + open_time;
-          Serial.println("Open normal end time: ");
-          Serial.println(end_time-millis());
-          break;
-          
-        case Closing:
-          end_time = start_time + close_time;
-          Serial.println("Close normal end time: ");
-          Serial.println(end_time-millis());
-          break;
-
-        default:
-          break;
-
-      }
-      stop_time = 0;
-      return;
-    }
-    
     switch(action){
 
       case Opening:
-
         switch(previous_action){
-
           case Opening:
-            end_time = start_time + open_time - stop_time;
-            Serial.println("Open Open end time: ");
-            Serial.println(end_time-millis());
+            end_time = start_time + prev_end_time - stop_time;
             break;
-
           case Closing:
-            int calc = (int)(stop_time*open_to_close + 0.5);
-            end_time = start_time + calc;
-            Serial.println("Open Close end time: ");
-            Serial.println(end_time-millis());
+            end_time = start_time + (open_time - ((prev_end_time - stop_time) * ratio));
             break;
-
           default:
+            end_time = start_time + open_time;
             break;
         }
-
         break;
 
       case Closing:
-        Serial.println(action);
-        Serial.println(previous_action);
-
         switch(previous_action){
-
           case Opening:
-            int calc = (int)(stop_time/open_to_close + 0.5);
-            end_time = start_time + calc;
-            Serial.println("Close Open end time: ");
-            Serial.println(end_time-millis());
+            end_time = start_time + (close_time - ((prev_end_time - stop_time) / ratio));
             break;
-
           case Closing:
-            end_time = start_time + close_time - stop_time;
-            Serial.println("Close Close end time: ");
-            Serial.println(end_time-millis());
+            end_time = start_time + prev_end_time - stop_time;
             break;
-
           default:
+            end_time = start_time + close_time;
             break;
         }
-
         break;
 
       default:
-
         break;
     }
-
-    stop_time = 0;
   }
+
   void open() {
-    if (working){
+    if (state == Open){
+      Serial.println("Blindfold already opened");
+      return;
+    }
+    else if(action != Stop){
       Serial.println("already working");
       return;
     }
@@ -151,7 +122,7 @@ struct BlindFold {
     digitalWrite(decision_pin, HIGH);
     digitalWrite(motor_pin, HIGH);
     action = Opening;
-    working = true;
+    state = Somewhere;
 
     start_time = millis();
     calculate_end_time();
@@ -161,7 +132,11 @@ struct BlindFold {
   }
 
   void close() {
-    if (working){
+    if (state == Closed){
+      Serial.println("Blindfold already closed");
+      return;
+    }
+    else if(action != Stop){
       Serial.println("already working");
       return;
     }
@@ -170,7 +145,8 @@ struct BlindFold {
     digitalWrite(motor_pin, LOW);
     
     action = Closing;
-    working = true;
+    
+    state = Somewhere;
 
     start_time = millis();
     calculate_end_time();
@@ -179,26 +155,28 @@ struct BlindFold {
   }
 
   void stop(){
-    if (!working){
+    if (state == Open || state == Closed || action==Stop ){
       Serial.println("Not moving rn");
       return;
     }
+    
     digitalWrite(decision_pin, LOW);
 
-    working = false;
+    state = Somewhere;
     previous_action = action;
     action = Stop;
 
-    int current_time = millis();
+    stop_time = millis()-start_time;
 
-    stop_time = current_time - start_time;
+    
+    
     Serial.println("time of action elapsed: ");
     Serial.println(stop_time);
     
   }
 
   void check(){
-    if (!working){
+    if (state != Somewhere || action == Stop){
       return;
     };
 
@@ -206,25 +184,24 @@ struct BlindFold {
 
     switch(action){
       case Opening:
-        
-        
-        
-
+  
         if (current_time >= end_time){
           digitalWrite(decision_pin,LOW);
+          Serial.println("Opened");
           action = Stop;
-          working = false;
+          state = Open;
+          stop_time = 0;
         }
 
         break;
       case Closing:
         
-        
-        
         if (current_time >= end_time){
           digitalWrite(decision_pin,LOW);
+          Serial.println("Closed");
           action = Stop;
-          working = false;
+          state = Closed;
+          stop_time = 0;
         }
         break;
 
@@ -237,33 +214,103 @@ struct BlindFold {
   }
 };
 
-
-BlindFold blind(Kitchen, 53, 51, 1000, 1100);
 String read_serial();
+void check_blind_folds();
+
+BlindFold blindfolds[] = {
+  BlindFold(Mateusz_room, 53, 51, 16500, 18000)
+
+  // BlindFold(Kitchen, 53, 51, 16500, 18000),
+  // BlindFold(Kitchen, 53, 51, 16500, 18000),
+
+  // BlindFold(main_room, 53, 51, 16500, 18000),
+  // BlindFold(main_room, 53, 51, 16500, 18000),
+  // BlindFold(main_room, 53, 51, 16500, 18000),
+
+  // BlindFold(guest_room, 53, 51, 16500, 18000),
+
+  // BlindFold(top_corridor, 53, 51, 16500, 18000),
+
+  // BlindFold(Dad_room, 53, 51, 16500, 18000),
+  // BlindFold(Dad_room, 53, 51, 16500, 18000),
+
+  // BlindFold(Parents_room, 53, 51, 16500, 18000),
+  // BlindFold(Parents_room, 53, 51, 16500, 18000),
+  // BlindFold(Parents_room, 53, 51, 16500, 18000),
+
+  // BlindFold(Natalia_room, 53, 51, 16500, 18000),
+  // BlindFold(Natalia_room, 53, 51, 16500, 18000),
+
+  // BlindFold(Gosia_room, 53, 51, 16500, 18000),
+  // BlindFold(Gosia_room, 53, 51, 16500, 18000),
+
+  // BlindFold(Ania_room, 53, 51, 16500, 18000),
+  // BlindFold(Ania_room, 53, 51, 16500, 18000)
+
+  // BlindFold(ground_storage_room, 53, 51, 16500, 18000),
+
+  // BlindFold(top_storage_room, 53, 51, 16500, 18000),
+};
 
 void setup() {
   Serial.begin(9600);
-
-  
 }
 
 void loop() {
   int message = Serial.read();
 
+  check_blind_folds();
+
+
   
 
   if (message == 49){
-    blind.close();
+
+    Serial.println("closing");
+    blindfolds[0].close();
+    
   }
   else if (message == 48){
-    blind.stop();
+    Serial.println("stopping");
+    blindfolds[0].stop();
   }
   else if (message == 50){
-    blind.open();
+    Serial.println("opening");
+    blindfolds[0].open();
+    
   };
   
-
-  blind.check();
  
+}
+void check_blind_folds(){
+  int length = sizeof(blindfolds) / sizeof(blindfolds[0]);
+  for (int i=0; i<length; i++){
+    blindfolds[i].check();
+  }
+}
+
+String read_serial(){
+  int bytereceived = Serial.read();
+  String message;
+  char length = bytereceived;
+  int ilength = length;
+   
+  do{
+    
+    
+    
+    if (bytereceived != 10 && bytereceived != -1){
+      char letter = bytereceived - 32;
+      message += letter;
+      
+    }
   
+  }while (message.length() < ilength);
+
+  if (message){
+    return message;
+  }
+  else{
+    return "";
+  }
 }
