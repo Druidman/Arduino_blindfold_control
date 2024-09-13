@@ -1,8 +1,6 @@
 #include <Arduino.h>
 
 void setup(){
-  pinMode(53, OUTPUT);
-  pinMode(51, OUTPUT);
   Serial.begin(9600);
 }
 
@@ -18,26 +16,29 @@ void loop(){
       int pin = spin.toInt();
 
       if  (pin != 0){
+        pinMode(pin, OUTPUT);
         String command = fullcommand.substring(2);
         Serial.println(command);
         Serial.println(pin);
 
         if (command=="open"){
-          digitalWrite(pin-1, HIGH);
+          //digitalWrite(pin-1, HIGH);
           digitalWrite(pin,HIGH);
         }
         else if(command=="close"){
-          digitalWrite(pin-1, HIGH);
+          //digitalWrite(pin-1, HIGH);
           digitalWrite(pin, LOW);
           
         }
         else if (command=="stop"){
-          digitalWrite(pin-1, LOW);
+          //digitalWrite(pin-1, LOW);
         }
 
       }
 
     }
   }
+
+}
 
 }
