@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blinds-home</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href='https://fonts.googleapis.com/css?family=Roboto Mono' rel='stylesheet'>
+</head>
+<body>
+    <header>Mateusz</header>
+    <main id="main">
+        <div class="widget left">
+            <p>Left</p>
+            <div class="blindframe">
+                <div class="blind">
+                    <div class="blind-handle"></div>
+                </div>
+            </div>
+        </div>
+        <div class="widget right">
+            <p>Right</p>
+            <div class="blindframe">
+                <div class="blind">
+                    <div class="blind-handle"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="controller">
+            <p id="text">Open: </p>
+            <button id="close">X</button>
+            <div>
+                <div class="blindframe">
+                    <div class="blind">
+                        <div class="blind-handle"></div>
+                </div>
+            </div>
+            
+            <div class="buttons">
+                <div class="blindframe-small">
+                    <div class="blind">
+                        <div class="blind-handle"></div>
+                </div>
+                <div class="blindframe-small">
+                    <div class="blind">
+                        <div class="blind-handle"></div>
+                </div>
+
+            </div>
+
+            </div>
+            
+        </div>
+
+        
+        
+    </main>   
+
+    <script>
+        const parent = document.getElementsByClassName("widget");
+
+        for (let i=0; i<parent.length; i++){
+            parent[i].onclick = function() {addClass(parent[i])};
+            // parent[i].addEventListener("click",function() {addClass(parent[i])});
+        }
+        function addClass(element) {
+
+            
+
+            var el = document.getElementById("controller")
+            el.style.visibility = "visible";
+
+        
+
+            // el.onclick = function() {el.style.visibility = "hidden"; console.log("closed")}
+            el.addEventListener("click",function() {el.style.visibility = "hidden"; console.log("closed")})
+            
+            
+
+
+            console.log("clicked");
+
+
+        }
+
+        function controller(blind_name, open_precentage) {
+
+        }
+
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,113 @@
+* {
+    font-family: 'Roboto Mono';
+    font-weight: bold;
+}
+body {
+    margin: 0px;
+    background-color: #FFFFFF;
+    height: 100vh; 
+    display: flex;
+    flex-direction: column;
+
+    justify-content: start;
+    
+    
+}
+
+header{
+    
+    height: 10%;
+    background-color: #00D9E7;
+    color: #FFFFFF;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 5vmax   ;
+    
+}
+
+main {
+    background-color: #FFFFFF;
+    height: 100%;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+#controller {
+    visibility: hidden;
+}
+
+
+.widget {
+    width: 30%;
+    height: 70%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    
+    align-items: center;
+    
+    
+    
+    border-radius: 10%;
+    font-size: 4em;
+
+    margin: 10px;
+    background-color: #FFB2B2;
+    transition: 1s;
+    
+}
+.widget p{
+    margin: 5px;
+}
+
+.widget:hover{
+    cursor: pointer;
+    background-color: #f56464;
+}
+
+
+
+.blindframe {
+    background-color: #FAD59E;
+    height: 80%;
+    width: 80%;
+    border-radius: 5%;
+    display: flex;
+    overflow: hidden;
+    margin: 5%;
+ 
+   
+}
+.blindframe .blind {
+    background-color: #FFA115;
+    width: 100%;
+    height: 20%;
+    border-radius: 10px; 
+    display: flex;
+    align-items: end;
+    justify-content: center;
+    
+    
+}
+
+
+.blindframe .blind-handle {
+    height: 10px;
+    width: 50%;
+    background-color: #FFFFFF;
+    margin: 5px;
+    border-radius: 10px;
+
+}
+
+.middle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    background-color: #FFA115;
+
+
+}
+
